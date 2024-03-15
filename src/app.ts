@@ -34,6 +34,7 @@ wsInstance.app.ws('/', (ws: WebSocket, req: Request) => {
     try {
       const message = JSON.parse(data);
       console.log('incoming message=>', message);
+      //send message to single user
       if (message.type === 'message' && message.to) {
         const recipientSocket = connectedUsers[message.to];
         if (recipientSocket) {
@@ -42,6 +43,21 @@ wsInstance.app.ws('/', (ws: WebSocket, req: Request) => {
         } else {
           console.log(`Recipient ${message.to} is not connected.`);
         }
+      }
+      //send message to multiple users except itself
+      if (message.type === 'broadcast') {
+        const senderUserName = username;
+        const broadcastMessage = message.data;
+        // Send the broadcast message to all other connected users
+        Object.entries(connectedUsers).forEach(
+          ([user, userWs]: [string, WebSocket]) => {
+            if (user !== senderUserName) {
+              userWs.send(
+                JSON.stringify({ type: 'broadcast', data: broadcastMessage })
+              );
+            }
+          }
+        );
       }
     } catch (error) {
       console.error('Error parsing message:', error);
