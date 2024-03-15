@@ -26,7 +26,7 @@ wsInstance.app.ws('/', (ws: WebSocket, req: Request) => {
   // connectedUsers.push(username);
   // Store the WebSocket connection associated with the username
   connectedUsers[username] = ws;
-  console.log('connected users==>', connectedUsers);
+  // console.log('connected users==>', connectedUsers);
   sendUserList(ws);
 
   //Handle incoming messages
@@ -46,6 +46,7 @@ wsInstance.app.ws('/', (ws: WebSocket, req: Request) => {
       }
       //send message to multiple users except itself
       if (message.type === 'broadcast') {
+        console.log('message=>', message);
         const senderUserName = username;
         const broadcastMessage = message.data;
         // Send the broadcast message to all other connected users
@@ -53,7 +54,11 @@ wsInstance.app.ws('/', (ws: WebSocket, req: Request) => {
           ([user, userWs]: [string, WebSocket]) => {
             if (user !== senderUserName) {
               userWs.send(
-                JSON.stringify({ type: 'broadcast', data: broadcastMessage })
+                JSON.stringify({
+                  type: 'message',
+                  data: broadcastMessage,
+                  userId: senderUserName,
+                })
               );
             }
           }
